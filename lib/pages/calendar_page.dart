@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/add_edit_event_page.dart';
 import 'package:table_calendar/table_calendar.dart'; // <-- IMPORT CORRIGIDO
-import 'package:intl/intl.dart';
 
 class CalendarPage extends StatefulWidget {
   final String houseId;

@@ -1,6 +1,6 @@
-// NOVO ARQUIVO: lib/pages/tasks_page.dart
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
+import 'package:gestao_familiar_app/pages/board_detail_page.dart';
 
 class TasksPage extends StatefulWidget {
   final String houseId;
@@ -11,57 +11,55 @@ class TasksPage extends StatefulWidget {
 }
 
 class _TasksPageState extends State<TasksPage> {
-  List<Map<String, dynamic>> _tasks = [];
+  List<Map<String, dynamic>> _boards = [];
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _getTasks();
+    _getBoards();
   }
 
-  Future<void> _getTasks() async {
+  Future<void> _getBoards() async {
     setState(() => _isLoading = true);
     try {
       final response = await supabase
-          .from('tasks')
+          .from('task_boards')
           .select()
           .eq('house_id', widget.houseId)
           .order('created_at', ascending: true);
-      setState(() {
-        _tasks = List<Map<String, dynamic>>.from(response);
-      });
+
+      if (mounted) {
+        setState(() {
+          _boards = List<Map<String, dynamic>>.from(response);
+        });
+      }
     } catch (e) {
-      debugPrint("Erro ao buscar tarefas: $e");
+      debugPrint("Erro ao buscar quadros: $e");
+      // Lidar com erro
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
   }
 
-  Future<void> _toggleTaskStatus(int taskId, bool newStatus) async {
-    try {
-      await supabase
-          .from('tasks')
-          .update({'is_complete': newStatus})
-          .eq('id', taskId);
-    } catch (e) {
-      debugPrint("Erro ao atualizar tarefa: $e");
-      // Se der erro, podemos reverter a mudança na UI ou mostrar um aviso
-    }
-  }
-  void _showAddTaskDialog() {
-    final taskController = TextEditingController();
-    showDialog(
+  Future<void> _showAddBoardDialog() async {
+    final boardNameController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Nova Tarefa'),
-          content: TextFormField(
-            controller: taskController,
-            decoration: const InputDecoration(
-              labelText: 'O que precisa ser feito?',
+          title: const Text('Criar Novo Quadro'),
+          content: Form(
+            key: formKey,
+            child: TextFormField(
+              controller: boardNameController,
+              decoration: const InputDecoration(labelText: 'Nome do Quadro'),
+              validator: (value) => (value?.trim().isEmpty ?? true)
+                  ? 'O nome é obrigatório.'
+                  : null,
             ),
-            autofocus: true,
           ),
           actions: [
             TextButton(
@@ -70,24 +68,20 @@ class _TasksPageState extends State<TasksPage> {
             ),
             ElevatedButton(
               onPressed: () async {
-                final taskContent = taskController.text.trim();
-                if (taskContent.isEmpty) return;
-
-                try {
-                  // Insere a nova tarefa no banco de dados
-                  await supabase.from('tasks').insert({
-                    'content': taskContent,
-                    'house_id': widget.houseId,
-                  });
-                  if (mounted) {
-                    Navigator.of(context).pop(); // Fecha o diálogo
-                    _getTasks(); // Atualiza a lista de tarefas na tela
+                if (formKey.currentState!.validate()) {
+                  try {
+                    await supabase.from('task_boards').insert({
+                      'name': boardNameController.text.trim(),
+                      'house_id': widget.houseId,
+                    });
+                    if (mounted) Navigator.of(context).pop();
+                    _getBoards(); // Atualiza a lista de quadros
+                  } catch (e) {
+                    // Lidar com erro
                   }
-                } catch (e) {
-                  debugPrint("Erro ao criar tarefa: $e");
                 }
               },
-              child: const Text('Adicionar'),
+              child: const Text('Criar'),
             ),
           ],
         );
@@ -100,29 +94,46 @@ class _TasksPageState extends State<TasksPage> {
     return Scaffold(
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
-          : _tasks.isEmpty
-          ? const Center(child: Text('Nenhuma tarefa ainda. Adicione uma!'))
           : RefreshIndicator(
-              onRefresh: _getTasks,
-              child: ListView.builder(
-                itemCount: _tasks.length,
-                itemBuilder: (context, index) {
-                  final task = _tasks[index];
-                  return CheckboxListTile(
-                    title: Text(task['content']),
-                    value: task['is_complete'],
-                    onChanged: (bool? newValue) {
-                      if (newValue == null) return;
-                      setState(() => task['is_complete'] = newValue);
-                      _toggleTaskStatus(task['id'], newValue);
-                    },
-                  );
-                },
-              ),
+              onRefresh: _getBoards,
+              child: _boards.isEmpty
+                  ? const Center(
+                      child: Text(
+                        'Nenhum quadro de tarefas criado. Crie o primeiro!',
+                      ),
+                    )
+                  : ListView.builder(
+                      itemCount: _boards.length,
+                      itemBuilder: (context, index) {
+                        final board = _boards[index];
+                        return Card(
+                          margin: const EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 8,
+                          ),
+                          child: ListTile(
+                            title: Text(board['name']),
+                            trailing: const Icon(Icons.arrow_forward_ios),
+                            onTap: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  // Navega para a página de detalhes do quadro
+                                  builder: (_) => BoardDetailPage(
+                                    boardId: board['id'],
+                                    boardName: board['name'],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
             ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddTaskDialog,
-        child: const Icon(Icons.add),
+      floatingActionButton: FloatingActionButton.extended(
+        icon: const Icon(Icons.add),
+        label: const Text('Novo Quadro'),
+        onPressed: _showAddBoardDialog,
       ),
     );
   }
