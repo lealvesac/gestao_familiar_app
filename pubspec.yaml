@@ -39,6 +39,8 @@ dependencies:
   table_calendar: ^3.2.0
   intl: ^0.20.2
   drag_and_drop_lists: ^0.4.2
+  firebase_core: ^3.14.0
+  firebase_messaging: ^15.2.7
 
 dev_dependencies:
   flutter_test:

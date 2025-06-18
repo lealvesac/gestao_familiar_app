@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "616833281378",
+    "project_id": "gestao-familiar-app",
+    "storage_bucket": "gestao-familiar-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:616833281378:android:0b050528d841b5bc2f503b",
+        "android_client_info": {
+          "package_name": "com.example.gestao_familiar_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDqB07eedt2OzkKQsU1DoR9tMRnPqGMz80"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
