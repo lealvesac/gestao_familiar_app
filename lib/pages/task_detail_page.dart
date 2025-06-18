@@ -1,7 +1,6 @@
-// CÓDIGO COMPLETO E ATUALIZADO: lib/pages/task_detail_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
+import 'package:intl/intl.dart';
 
 class TaskDetailPage extends StatefulWidget {
   final Map<String, dynamic> taskData;
@@ -21,20 +20,48 @@ class TaskDetailPage extends StatefulWidget {
 
 class _TaskDetailPageState extends State<TaskDetailPage> {
   late String? _selectedAssigneeId;
+  late DateTime? _dueDate;
   bool _isLoading = false;
 
   @override
   void initState() {
     super.initState();
+    // Inicializa o responsável pela tarefa
     _selectedAssigneeId = widget.taskData['assignee_id'];
+
+    // Inicializa a data de vencimento, se ela existir no banco
+    final dueDateString = widget.taskData['due_date'];
+    _dueDate = dueDateString != null ? DateTime.parse(dueDateString) : null;
   }
 
+  // Função para abrir o seletor de data (DatePicker)
+  Future<void> _pickDueDate() async {
+    final pickedDate = await showDatePicker(
+      context: context,
+      initialDate: _dueDate ?? DateTime.now(),
+      firstDate: DateTime.now().subtract(
+        const Duration(days: 365),
+      ), // Permite datas passadas
+      lastDate: DateTime.now().add(
+        const Duration(days: 365 * 5),
+      ), // Permite datas futuras
+    );
+    if (pickedDate != null && mounted) {
+      setState(() => _dueDate = pickedDate);
+    }
+  }
+
+  // Função para salvar todas as alterações (responsável e data)
   Future<void> _saveChanges() async {
     setState(() => _isLoading = true);
     try {
       await supabase
           .from('kanban_tasks')
-          .update({'assignee_id': _selectedAssigneeId})
+          .update({
+            'assignee_id': _selectedAssigneeId,
+            'due_date': _dueDate
+                ?.toIso8601String(), // Envia a data ou null se ela for removida
+          })
           .eq('id', widget.taskData['id']);
 
       if (mounted) Navigator.of(context).pop();
@@ -52,6 +79,7 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
     }
   }
 
+  // Função para excluir a tarefa, com diálogo de confirmação
   Future<void> _deleteTask() async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -113,14 +141,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
-          Text('Tarefa:', style: Theme.of(context).textTheme.titleSmall),
+          Text('Tarefa:', style: Theme.of(context).textTheme.bodySmall),
           Text(
             widget.taskData['content'],
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const Divider(height: 32),
 
-          Text('Designar para:', style: Theme.of(context).textTheme.titleSmall),
+          Text('Designar para:', style: Theme.of(context).textTheme.bodySmall),
           DropdownButtonFormField<String?>(
             value: _selectedAssigneeId,
             hint: const Text('Selecione um membro'),
@@ -140,12 +168,50 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
               });
             },
           ),
+          const Divider(height: 32),
+
+          // --- NOVA SEÇÃO PARA DATA DE VENCIMENTO ---
+          Text(
+            'Data de Vencimento:',
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              const Icon(Icons.calendar_today_outlined, color: Colors.grey),
+              const SizedBox(width: 16),
+              Expanded(
+                child: Text(
+                  _dueDate == null
+                      ? 'Sem data definida'
+                      : DateFormat('dd/MM/yyyy').format(_dueDate!),
+                  style: const TextStyle(fontSize: 16),
+                ),
+              ),
+              // Botão para remover a data
+              if (_dueDate != null)
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  tooltip: 'Remover data',
+                  onPressed: () => setState(() => _dueDate = null),
+                ),
+              // Botão para adicionar/editar a data
+              TextButton(
+                onPressed: _pickDueDate,
+                child: Text(_dueDate == null ? 'Adicionar' : 'Alterar'),
+              ),
+            ],
+          ),
           const SizedBox(height: 32),
           _isLoading
               ? const Center(child: CircularProgressIndicator())
-              : ElevatedButton(
+              : ElevatedButton.icon(
+                  icon: const Icon(Icons.save),
+                  label: const Text('Salvar Alterações'),
                   onPressed: _saveChanges,
-                  child: const Text('Salvar Alterações'),
+                  style: ElevatedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                  ),
                 ),
         ],
       ),
