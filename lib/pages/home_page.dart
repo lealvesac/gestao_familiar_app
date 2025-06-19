@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/house_dashboard_page.dart';
 import 'package:gestao_familiar_app/pages/no_house_page.dart';
+import 'package:gestao_familiar_app/api/firebase_api.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _getHouseMembershipFuture = _getHouseMembership();
+     FirebaseApi().initNotifications(); 
   }
 
   Future<Map<String, dynamic>?> _getHouseMembership() async {
