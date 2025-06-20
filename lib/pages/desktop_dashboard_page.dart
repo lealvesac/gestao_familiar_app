@@ -40,10 +40,11 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
         'get_house_members',
         params: {'p_house_id': widget.houseId},
       );
-      if (mounted)
+      if (mounted) {
         setState(
           () => _houseMembers = List<Map<String, dynamic>>.from(response),
         );
+      }
     } catch (e) {}
   }
 

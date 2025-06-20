@@ -67,13 +67,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       debugPrint("Erro ao salvar tarefa: $e");
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Erro ao salvar alterações.'),
             backgroundColor: Colors.red,
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -112,13 +113,14 @@ class _TaskDetailPageState extends State<TaskDetailPage> {
         if (mounted) Navigator.of(context).pop();
       } catch (e) {
         debugPrint("Erro ao excluir tarefa: $e");
-        if (mounted)
+        if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(
               content: Text('Erro ao excluir tarefa.'),
               backgroundColor: Colors.red,
             ),
           );
+        }
       } finally {
         if (mounted) setState(() => _isLoading = false);
       }
