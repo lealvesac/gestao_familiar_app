@@ -1,8 +1,7 @@
-// CÓDIGO COMPLETO E ATUALIZADO: lib/pages/tasks_page.dart
-
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/board_detail_page.dart';
+import 'package:animate_do/animate_do.dart';
 
 class TasksPage extends StatefulWidget {
   final String houseId;
@@ -152,41 +151,47 @@ class _TasksPageState extends State<TasksPage> {
                       itemCount: _boards.length,
                       itemBuilder: (context, index) {
                         final board = _boards[index];
-                        return Card(
-                          margin: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          child: ListTile(
-                            leading: const Icon(Icons.dashboard_outlined),
-                            title: Text(board['name']),
-                            // --- MUDANÇA AQUI: de Ícone para Menu ---
-                            trailing: PopupMenuButton<String>(
-                              icon: const Icon(Icons.more_vert),
-                              onSelected: (value) {
-                                if (value == 'delete') {
-                                  _deleteBoard(board['id'], board['name']);
-                                }
-                              },
-                              itemBuilder: (BuildContext context) => [
-                                const PopupMenuItem<String>(
-                                  value: 'delete',
-                                  child: Text('Excluir Quadro'),
-                                ),
-                                // No futuro, poderíamos adicionar "Renomear", etc.
-                              ],
+
+                        return FadeInUp(
+                          delay: Duration(
+                            milliseconds: 100 * index,
+                          ), // Atraso para cada item aparecer em sequência
+                          child: Card(
+                            margin: const EdgeInsets.symmetric(
+                              horizontal: 16,
+                              vertical: 8,
                             ),
-                            onTap: () {
-                              Navigator.of(context).push(
-                                MaterialPageRoute(
-                                  builder: (_) => BoardDetailPage(
-                                    boardId: board['id'],
-                                    boardName: board['name'],
-                                    houseId: widget.houseId,
+                            child: ListTile(
+                              leading: const Icon(Icons.dashboard_outlined),
+                              title: Text(board['name']),
+                              // --- MUDANÇA AQUI: de Ícone para Menu ---
+                              trailing: PopupMenuButton<String>(
+                                icon: const Icon(Icons.more_vert),
+                                onSelected: (value) {
+                                  if (value == 'delete') {
+                                    _deleteBoard(board['id'], board['name']);
+                                  }
+                                },
+                                itemBuilder: (BuildContext context) => [
+                                  const PopupMenuItem<String>(
+                                    value: 'delete',
+                                    child: Text('Excluir Quadro'),
                                   ),
-                                ),
-                              );
-                            },
+                                  // No futuro, poderíamos adicionar "Renomear", etc.
+                                ],
+                              ),
+                              onTap: () {
+                                Navigator.of(context).push(
+                                  MaterialPageRoute(
+                                    builder: (_) => BoardDetailPage(
+                                      boardId: board['id'],
+                                      boardName: board['name'],
+                                      houseId: widget.houseId,
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
                           ),
                         );
                       },

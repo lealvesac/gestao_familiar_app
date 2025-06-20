@@ -1,7 +1,9 @@
+// ARQUIVO ATUALIZADO E RESPONSIVO: lib/pages/login_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/home_page.dart';
-import 'package:gestao_familiar_app/pages/signup_page.dart'; // Import da nova página
+import 'package:gestao_familiar_app/pages/signup_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
@@ -24,7 +26,7 @@ class _LoginPageState extends State<LoginPage> {
     setState(() => _isLoading = true);
     try {
       await supabase.auth.signInWithPassword(
-        email: _emailController.text,
+        email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       if (mounted) {
@@ -34,9 +36,9 @@ class _LoginPageState extends State<LoginPage> {
       }
     } on AuthException catch (error) {
       if (mounted) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(error.message)));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text(error.message), backgroundColor: Colors.red),
+        );
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -53,42 +55,96 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Login')),
       body: Center(
+        // Adicionamos um Center para garantir a centralização vertical e horizontal
         child: SingleChildScrollView(
-          padding: const EdgeInsets.all(16.0),
-          child: Form(
-            key: _formKey,
+          padding: const EdgeInsets.all(24.0),
+          // --- A MÁGICA DA RESPONSIVIDADE ACONTECE AQUI ---
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(
+              maxWidth: 500,
+            ), // Limita a largura máxima
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                TextFormField(
-                  controller: _emailController,
-                  decoration: const InputDecoration(labelText: 'E-mail'),
-                  keyboardType: TextInputType.emailAddress,
-                  textInputAction:
-                      TextInputAction.next, // Pula para o próximo campo
-                  validator: (value) =>
-                      (value?.isEmpty ?? true) ? 'Campo obrigatório' : null,
+                // --- CABEÇALHO ---
+                const Text(
+                  'Familize',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: primaryColor,
+                    fontSize: 40,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _passwordController,
-                  decoration: const InputDecoration(labelText: 'Senha'),
-                  obscureText: true,
-                  validator: (value) =>
-                      (value?.isEmpty ?? true) ? 'Campo obrigatório' : null,
-                  onFieldSubmitted: (_) =>
-                      _signIn(), // <-- MELHORIA 1 IMPLEMENTADA AQUI
+                const SizedBox(height: 8),
+                const Text(
+                  'Organize sua família e casa em um só lugar',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: lightTextColor, fontSize: 16),
+                ),
+                const SizedBox(height: 48),
+
+                // --- CARD DE LOGIN ---
+                Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const Text(
+                            'Acesso ao Sistema',
+                            style: TextStyle(
+                              fontSize: 22,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          const SizedBox(height: 8),
+                          const Text(
+                            'Digite seu e-mail e senha para acessar.',
+                            style: TextStyle(color: lightTextColor),
+                          ),
+                          const SizedBox(height: 24),
+                          TextFormField(
+                            controller: _emailController,
+                            decoration: const InputDecoration(
+                              labelText: 'E-mail',
+                            ),
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            validator: (value) => (value?.isEmpty ?? true)
+                                ? 'Campo obrigatório'
+                                : null,
+                          ),
+                          const SizedBox(height: 16),
+                          TextFormField(
+                            controller: _passwordController,
+                            decoration: const InputDecoration(
+                              labelText: 'Senha',
+                            ),
+                            obscureText: true,
+                            validator: (value) => (value?.isEmpty ?? true)
+                                ? 'Campo obrigatório'
+                                : null,
+                            onFieldSubmitted: (_) => _signIn(),
+                          ),
+                          const SizedBox(height: 24),
+                          if (_isLoading)
+                            const Center(child: CircularProgressIndicator())
+                          else
+                            ElevatedButton(
+                              onPressed: _signIn,
+                              child: const Text('Entrar'),
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ),
                 const SizedBox(height: 24),
-                if (_isLoading)
-                  const CircularProgressIndicator()
-                else
-                  ElevatedButton(
-                    onPressed: _signIn,
-                    child: const Text('Entrar'),
-                  ),
                 TextButton(
                   onPressed: () {
                     Navigator.of(context).push(

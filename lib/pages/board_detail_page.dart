@@ -1,3 +1,5 @@
+// CÓDIGO COMPLETO E FINAL PARA: lib/pages/board_detail_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/task_detail_page.dart';
@@ -21,7 +23,9 @@ class BoardDetailPage extends StatefulWidget {
 }
 
 class _BoardDetailPageState extends State<BoardDetailPage> {
+  // A "fonte da verdade" dos dados que vêm do banco
   List<Map<String, dynamic>> _listsFromDB = [];
+  // A lista de widgets que o pacote de drag-and-drop usa
   List<DragAndDropList> _dragAndDropLists = [];
   bool _isLoading = true;
   List<Map<String, dynamic>> _houseMembers = [];
@@ -32,7 +36,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     _fetchInitialData();
   }
 
-  // --- FUNÇÕES DE DADOS (NENHUMA MUDANÇA AQUI) ---
+  // --- FUNÇÕES DE DADOS ---
   Future<void> _fetchInitialData() async {
     setStateIfMounted(() => _isLoading = true);
     await Future.wait([_getBoardDetails(), _fetchHouseMembers()]);
@@ -67,6 +71,62 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     } catch (e) {
       debugPrint("Erro ao buscar membros da casa: $e");
     }
+  }
+
+  // --- FUNÇÕES DE LÓGICA DE AÇÕES ---
+
+  void _buildDragAndDropContent() {
+    _dragAndDropLists = _listsFromDB.map((listData) {
+      final tasksFromDB =
+          (listData['tasks'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+      return DragAndDropList(
+        header: _buildListHeader(listData),
+        footer: _buildListFooter(listData, tasksFromDB.length),
+        children: tasksFromDB
+            .map(
+              (taskData) => DragAndDropItem(
+                child: _buildTaskCard(taskData, listData['list_name']),
+              ),
+            )
+            .toList(),
+      );
+    }).toList();
+    setStateIfMounted(() {});
+  }
+
+  void _onItemReorder(
+    int oldItemIndex,
+    int oldListIndex,
+    int newItemIndex,
+    int newListIndex,
+  ) {
+    final taskData = _listsFromDB[oldListIndex]['tasks'][oldItemIndex];
+    final taskId = taskData['id'];
+    final newListId = _listsFromDB[newListIndex]['list_id'];
+
+    setState(() {
+      final movedItemData = _listsFromDB[oldListIndex]['tasks'].removeAt(
+        oldItemIndex,
+      );
+
+      if (_listsFromDB[newListIndex]['tasks'] == null) {
+        _listsFromDB[newListIndex]['tasks'] = <Map<String, dynamic>>[];
+      }
+
+      _listsFromDB[newListIndex]['tasks'].insert(newItemIndex, movedItemData);
+      _buildDragAndDropContent();
+    });
+
+    _moveTask(taskId, newListId, newItemIndex);
+  }
+
+  void _onListReorder(int oldListIndex, int newListIndex) {
+    setState(() {
+      final movedListData = _listsFromDB.removeAt(oldListIndex);
+      _listsFromDB.insert(newListIndex, movedListData);
+      _buildDragAndDropContent();
+    });
+    // TODO: Chamar RPC para persistir a ordem das listas
   }
 
   Future<void> _moveTask(
@@ -135,7 +195,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                 'board_id': widget.boardId,
                 'position': _listsFromDB.length,
               }).select();
+
               if (mounted) Navigator.of(dialogContext).pop();
+
               setState(() {
                 final newListMap = newListData.first;
                 newListMap['list_id'] = newListMap['id'];
@@ -191,7 +253,9 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                 'list_id': listId,
                 'position': currentTaskCount,
               }).select();
+
               if (mounted) Navigator.of(dialogContext).pop();
+
               setState(() {
                 final listIndex = _listsFromDB.indexWhere(
                   (list) => list['list_id'] == listId,
@@ -239,63 +303,77 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     );
   }
 
-  // --- FUNÇÕES DE LÓGICA DO DRAG AND DROP (NENHUMA MUDANÇA AQUI) ---
-  void _onItemReorder(
-    int oldItemIndex,
-    int oldListIndex,
-    int newItemIndex,
-    int newListIndex,
-  ) {
-    final taskData = _listsFromDB[oldListIndex]['tasks'][oldItemIndex];
-    final taskId = taskData['id'];
-    final newListId = _listsFromDB[newListIndex]['list_id'];
-
-    setState(() {
-      final movedItemData = _listsFromDB[oldListIndex]['tasks'].removeAt(
-        oldItemIndex,
+  void showErrorSnackBar(String message) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(message),
+          backgroundColor: Theme.of(context).colorScheme.error,
+        ),
       );
-      if (_listsFromDB[newListIndex]['tasks'] == null) {
-        _listsFromDB[newListIndex]['tasks'] = <Map<String, dynamic>>[];
-      }
-      _listsFromDB[newListIndex]['tasks'].insert(newItemIndex, movedItemData);
-      _buildDragAndDropContent();
-    });
-
-    _moveTask(taskId, newListId, newItemIndex);
+    }
   }
 
-  void _onListReorder(int oldListIndex, int newListIndex) {
-    setState(() {
-      final movedListData = _listsFromDB.removeAt(oldListIndex);
-      _listsFromDB.insert(newListIndex, movedListData);
-      _buildDragAndDropContent();
-    });
-    // TODO: Chamar RPC para persistir a ordem das listas
+  void setStateIfMounted(VoidCallback fn) {
+    if (mounted) {
+      setState(fn);
+    }
   }
 
-  // --- FUNÇÕES DE CONSTRUÇÃO DA UI (COM MUDANÇAS) ---
+  // --- WIDGETS AUXILIARES DE UI (AS PARTES QUE FALTAVAM) ---
 
-  void _buildDragAndDropContent() {
-    _dragAndDropLists = _listsFromDB.map((listData) {
-      final tasksFromDB =
-          (listData['tasks'] as List?)?.cast<Map<String, dynamic>>() ?? [];
-      return DragAndDropList(
-        header: _buildListHeader(listData),
-        footer: _buildListFooter(listData, tasksFromDB.length),
-        children: tasksFromDB
-            .map(
-              (taskData) => DragAndDropItem(
-                // Passamos o nome da lista para o cartão da tarefa
-                child: _buildTaskCard(taskData, listData['list_name']),
+  Widget _buildListHeader(Map<String, dynamic> listData) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: 16.0,
+        right: 4.0,
+        top: 8.0,
+        bottom: 4.0,
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(
+              listData['list_name'],
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+          PopupMenuButton<String>(
+            icon: const Icon(Icons.more_vert, size: 20),
+            onSelected: (value) {
+              if (value == 'delete') {
+                _deleteList(listData['list_id'], listData['list_name']);
+              }
+            },
+            itemBuilder: (BuildContext context) => [
+              const PopupMenuItem<String>(
+                value: 'delete',
+                child: Text('Excluir Lista'),
               ),
-            )
-            .toList(),
-      );
-    }).toList();
-    setStateIfMounted(() {});
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
-  // A função agora recebe o nome da lista para decidir o estilo
+  Widget _buildListFooter(Map<String, dynamic> listData, int taskCount) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: TextButton.icon(
+          icon: const Icon(Icons.add, size: 16),
+          label: const Text('Adicionar Tarefa'),
+          style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
+          onPressed: () => _showAddTaskDialog(listData['list_id'], taskCount),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTaskCard(Map<String, dynamic> taskData, String listName) {
     final assigneeName = taskData['assignee_full_name'];
     final dueDateString = taskData['due_date'];
@@ -305,9 +383,6 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     bool isOverdue =
         dueDate != null &&
         dueDate.isBefore(DateTime.now().subtract(const Duration(days: 1)));
-
-    // --- LÓGICA DO CHECK-IN DE CONCLUSÃO ---
-    // Considera a tarefa concluída se estiver em uma lista chamada "Feito" ou "Concluído"
     final bool isCompleted = [
       'feito',
       'concluído',
@@ -329,7 +404,6 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
         _getBoardDetails();
       },
       child: Card(
-        // Muda a cor do cartão se a tarefa estiver concluída
         color: isCompleted ? Colors.grey.shade100 : Colors.white,
         elevation: isCompleted ? 1 : 2,
         margin: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
@@ -345,7 +419,6 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                     child: Padding(
                       padding: const EdgeInsets.only(right: 8.0, top: 2.0),
                       child: Icon(
-                        // Se estiver concluída, mostra um check, senão o puxador
                         isCompleted ? Icons.check_circle : Icons.drag_indicator,
                         color: isCompleted
                             ? Colors.green
@@ -357,14 +430,13 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
                   Expanded(
                     child: Text(
                       taskData['content'],
-                      // Aplica o estilo de texto riscado se a tarefa estiver concluída
                       style: TextStyle(
                         decoration: isCompleted
                             ? TextDecoration.lineThrough
                             : TextDecoration.none,
                         color: isCompleted
                             ? Colors.grey.shade700
-                            : Colors.black87,
+                            : Theme.of(context).textTheme.bodyLarge?.color,
                         fontStyle: isCompleted
                             ? FontStyle.italic
                             : FontStyle.normal,
@@ -419,72 +491,7 @@ class _BoardDetailPageState extends State<BoardDetailPage> {
     );
   }
 
-  // O resto do arquivo continua igual
-  void setStateIfMounted(VoidCallback fn) {
-    if (mounted) {
-      setState(fn);
-    }
-  }
-
-  void showErrorSnackBar(String message) {
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(message), backgroundColor: Colors.red),
-      );
-    }
-  }
-
-  Widget _buildListHeader(Map<String, dynamic> listData) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: 16.0,
-        right: 4.0,
-        top: 8.0,
-        bottom: 4.0,
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Expanded(
-            child: Text(
-              listData['list_name'],
-              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              overflow: TextOverflow.ellipsis,
-            ),
-          ),
-          PopupMenuButton<String>(
-            icon: const Icon(Icons.more_vert, size: 20),
-            onSelected: (value) {
-              if (value == 'delete') {
-                _deleteList(listData['list_id'], listData['list_name']);
-              }
-            },
-            itemBuilder: (BuildContext context) => [
-              const PopupMenuItem<String>(
-                value: 'delete',
-                child: Text('Excluir Lista'),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildListFooter(Map<String, dynamic> listData, int taskCount) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 4.0),
-      child: SizedBox(
-        width: double.infinity,
-        child: TextButton.icon(
-          icon: const Icon(Icons.add, size: 16),
-          label: const Text('Adicionar Tarefa'),
-          style: TextButton.styleFrom(foregroundColor: Colors.grey.shade700),
-          onPressed: () => _showAddTaskDialog(listData['list_id'], taskCount),
-        ),
-      ),
-    );
-  }
+  // --- MÉTODO BUILD PRINCIPAL ---
 
   @override
   Widget build(BuildContext context) {

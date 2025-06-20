@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
-import 'package:gestao_familiar_app/pages/house_dashboard_page.dart';
 import 'package:gestao_familiar_app/pages/no_house_page.dart';
 import 'package:gestao_familiar_app/api/firebase_api.dart';
+import 'package:gestao_familiar_app/pages/responsive_home_page.dart'; 
+// A linha do 'house_dashboard_page.dart' foi removida.
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -12,22 +13,16 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // Vamos transformar a função em uma variável de futuro para que o FutureBuilder
-  // não a chame repetidamente a cada reconstrução.
   late Future<Map<String, dynamic>?> _getHouseMembershipFuture;
 
   @override
   void initState() {
     super.initState();
     _getHouseMembershipFuture = _getHouseMembership();
-     FirebaseApi().initNotifications(); 
+    FirebaseApi().initNotifications();
   }
 
   Future<Map<String, dynamic>?> _getHouseMembership() async {
-    if (supabase.auth.currentUser == null) {
-      return null;
-    }
-
     final userId = supabase.auth.currentUser!.id;
     try {
       final response = await supabase
@@ -35,7 +30,6 @@ class _HomePageState extends State<HomePage> {
           .select('role, houses(id, name, invite_code, owner_id)')
           .eq('profile_id', userId)
           .maybeSingle();
-
       return response;
     } catch (e) {
       debugPrint("Erro ao buscar casa: $e");
@@ -54,33 +48,37 @@ class _HomePageState extends State<HomePage> {
           );
         }
 
-        if (snapshot.hasError || !snapshot.hasData || snapshot.data == null) {
-          // AQUI ESTÁ A MUDANÇA:
-          // Passamos a função de callback para o parâmetro com o nome correto.
-          return NoHousePage(
-            onHouseCreatedOrJoined: () {
-              // <-- Nome do parâmetro corrigido
-              setState(() {
-                _getHouseMembershipFuture = _getHouseMembership();
-              });
-            },
+        if (snapshot.hasData && snapshot.data != null) {
+          final membershipData = snapshot.data!;
+          // Verifica se 'houses' não é nulo antes de acessar
+          final houseData = membershipData['houses'];
+          if (houseData == null) {
+            // Se por algum motivo a casa não for encontrada, trata como se não tivesse casa
+            return NoHousePage(
+              onHouseCreatedOrJoined: () {
+                setState(() {
+                  _getHouseMembershipFuture = _getHouseMembership();
+                });
+              },
+            );
+          }
+
+          return ResponsiveHomePage(
+            houseId: houseData['id'],
+            houseName: houseData['name'],
+            userRole: membershipData['role'],
+            inviteCode: houseData['invite_code'],
+            houseOwnerId:
+                houseData['owner_id'], // Agora será recebido corretamente
           );
         }
 
-        final membershipData = snapshot.data!;
-        final houseData = membershipData['houses'];
-        final userRole = membershipData['role'];
-        final houseId = houseData['id'];
-        final houseName = houseData['name'];
-        final inviteCode = houseData['invite_code'];
-        final houseOwnerId = houseData['owner_id'];
-
-        return HouseDashboardPage(
-          houseId: houseId,
-          houseName: houseName,
-          userRole: userRole,
-          inviteCode: inviteCode,
-          houseOwnerId: houseOwnerId,
+        return NoHousePage(
+          onHouseCreatedOrJoined: () {
+            setState(() {
+              _getHouseMembershipFuture = _getHouseMembership();
+            });
+          },
         );
       },
     );
