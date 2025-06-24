@@ -1,4 +1,4 @@
-// ARQUIVO SIMPLIFICADO: lib/pages/desktop_dashboard_page.dart
+// CÓDIGO FINAL: lib/pages/desktop_dashboard_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
@@ -33,15 +33,46 @@ class DesktopDashboardPage extends StatefulWidget {
 
 class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
   int _selectedIndex = 0;
-  late final List<Widget> _pages;
-  late final List<String> _pageTitles;
+  String _userFullName = 'Usuário'; // Valor inicial
 
   @override
   void initState() {
     super.initState();
+    // Busca o nome do usuário ao iniciar a tela
+    _fetchUserProfile();
+  }
 
-    _pages = [
-      DesktopSummaryPage(houseId: widget.houseId, userId: widget.userId),
+  Future<void> _fetchUserProfile() async {
+    try {
+      final response = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', widget.userId)
+          .single();
+
+      if (mounted && response['full_name'] != null) {
+        // Se encontrar, atualiza o estado com o nome real.
+        setState(() {
+          _userFullName = response['full_name'];
+        });
+      }
+    } catch (e) {
+      debugPrint("Erro ao buscar perfil do usuário no dashboard: $e");
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    // Usa a variável de estado para obter o primeiro nome
+    final userFirstName = _userFullName.split(' ').first;
+
+    // A lista de páginas é criada aqui, garantindo que sempre use os dados mais recentes
+    final List<Widget> pages = [
+      DesktopSummaryPage(
+        houseId: widget.houseId,
+        userId: widget.userId,
+        userName: _userFullName,
+      ),
       TasksPage(houseId: widget.houseId),
       ShoppingListPage(houseId: widget.houseId),
       CalendarPage(houseId: widget.houseId),
@@ -54,7 +85,7 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
       ),
     ];
 
-    _pageTitles = [
+    final List<String> pageTitles = [
       widget.houseName,
       'Quadros de Tarefas',
       'Listas de Compras',
@@ -63,16 +94,6 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
       'Medicamentos',
       'Gerenciar Família',
     ];
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    // Usaremos os metadados aqui para o "Olá" na AppBar, que já está funcionando.
-    final userFirstName =
-        supabase.auth.currentUser?.userMetadata?['full_name']
-            ?.split(' ')
-            .first ??
-        'Usuário';
 
     return Scaffold(
       body: Row(
@@ -125,11 +146,12 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
+
           Expanded(
             child: Column(
               children: [
                 AppBar(
-                  title: Text(_pageTitles[_selectedIndex]),
+                  title: Text(pageTitles[_selectedIndex]),
                   backgroundColor: Colors.white,
                   elevation: 1,
                   automaticallyImplyLeading: false,
@@ -160,7 +182,7 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
                     const SizedBox(width: 8),
                   ],
                 ),
-                Expanded(child: _pages[_selectedIndex]),
+                Expanded(child: pages[_selectedIndex]),
               ],
             ),
           ),

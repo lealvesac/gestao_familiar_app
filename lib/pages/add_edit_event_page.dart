@@ -156,13 +156,14 @@ class _AddEditEventPageState extends State<AddEditEventPage> {
       if (mounted) Navigator.of(context).pop();
     } catch (e) {
       debugPrint("Erro ao salvar evento: $e");
-      if (mounted)
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erro ao salvar evento.'),
             backgroundColor: Colors.red,
           ),
         );
+      }
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

@@ -25,7 +25,7 @@ class _CalendarPageState extends State<CalendarPage> {
   CalendarFormat _calendarFormat = CalendarFormat.month;
 
   List<Map<String, dynamic>> _houseMembers = [];
-  Set<String> _selectedMemberIds = {};
+  final Set<String> _selectedMemberIds = {};
 
   @override
   void initState() {
