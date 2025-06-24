@@ -1,4 +1,5 @@
-// lib/widgets/dashboard_cards/family_members_panel.dart
+// ARQUIVO ATUALIZADO E CORRIGIDO: lib/widgets/dashboard_cards/family_members_panel.dart
+
 import 'package:flutter/material.dart';
 
 class FamilyMembersPanel extends StatelessWidget {
@@ -20,21 +21,34 @@ class FamilyMembersPanel extends StatelessWidget {
           ),
           const Divider(height: 24),
           if (members.isEmpty)
-            const Center(child: Text('Carregando...'))
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text('Carregando membros...'),
+              ),
+            )
           else
             Expanded(
               child: ListView.builder(
                 itemCount: members.length,
                 itemBuilder: (context, index) {
                   final member = members[index];
-                  final profile = member['profiles'];
-                  final fullName = profile['full_name'] ?? 'Sem nome';
+                  // --- CORREÇÃO AQUI ---
+                  // Acessamos 'full_name' diretamente do objeto 'member',
+                  // pois a nossa função RPC não aninha mais os dados dentro de 'profiles'.
+                  final fullName = member['full_name'] ?? 'Sem nome';
+
                   return ListTile(
                     contentPadding: EdgeInsets.zero,
                     leading: CircleAvatar(
-                      child: Text(fullName.isNotEmpty ? fullName[0] : '?'),
+                      child: Text(
+                        fullName.isNotEmpty ? fullName[0].toUpperCase() : '?',
+                      ),
                     ),
                     title: Text(fullName),
+                    subtitle: Text(
+                      member['role'] == 'administrador' ? 'Admin' : 'Membro',
+                    ), // Mostra o papel do usuário
                   );
                 },
               ),

@@ -1,21 +1,26 @@
+// ARQUIVO COMPLETO E FINAL: lib/pages/mobile_home_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/calendar_page.dart';
 import 'package:gestao_familiar_app/pages/family_page.dart';
+import 'package:gestao_familiar_app/pages/finances_page.dart';
+import 'package:gestao_familiar_app/pages/medication_page.dart';
 import 'package:gestao_familiar_app/pages/profile_page.dart';
 import 'package:gestao_familiar_app/pages/shopping_list_page.dart';
 import 'package:gestao_familiar_app/pages/splash_page.dart';
 import 'package:gestao_familiar_app/pages/tasks_page.dart';
 import 'package:gestao_familiar_app/widgets/menu_button_widget.dart';
 
-// O NOME DA CLASSE FOI ALTERADO DE HomeMenuPage PARA MobileHomePage
 class MobileHomePage extends StatelessWidget {
+  // --- AS DECLARAÇÕES QUE FALTAVAM ESTÃO AQUI ---
   final String houseId;
   final String houseName;
   final String userRole;
   final String inviteCode;
   final String houseOwnerId;
 
+  // O construtor agora corresponde às variáveis declaradas
   const MobileHomePage({
     super.key,
     required this.houseId,
@@ -104,9 +109,31 @@ class MobileHomePage extends StatelessWidget {
           ),
           const SizedBox(height: 12),
           MenuButton(
-            icon: Icons.people_outline,
-            label: 'Família',
-            color: Colors.blue.shade600,
+            icon: Icons.account_balance_wallet_outlined,
+            label: 'Finanças',
+            color: Colors.blue.shade800,
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const FinancesPage()));
+            },
+          ),
+          const SizedBox(height: 12),
+          MenuButton(
+            icon: Icons.medication_outlined,
+            label: 'Medicamentos',
+            color: Colors.red.shade600,
+            onTap: () {
+              Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const MedicationPage()));
+            },
+          ),
+          const SizedBox(height: 12),
+          MenuButton(
+            icon: Icons.admin_panel_settings_outlined,
+            label: 'Gerenciar Família',
+            color: Colors.grey.shade700,
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(

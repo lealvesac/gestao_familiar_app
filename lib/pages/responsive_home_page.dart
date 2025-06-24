@@ -1,16 +1,17 @@
-// ARQUIVO ATUALIZADO E CORRIGIDO: lib/pages/responsive_home_page.dart
+// CÓDIGO FINAL PARA: lib/pages/responsive_home_page.dart
 
 import 'package:flutter/material.dart';
-import 'package:gestao_familiar_app/main.dart'; // <-- IMPORT ADICIONADO AQUI
 import 'package:gestao_familiar_app/pages/desktop_dashboard_page.dart';
 import 'package:gestao_familiar_app/pages/mobile_home_page.dart';
 
 class ResponsiveHomePage extends StatelessWidget {
+  // A classe agora ACEITA todos os parâmetros
   final String houseId;
   final String houseName;
   final String userRole;
   final String inviteCode;
   final String houseOwnerId;
+  final String userId;
 
   const ResponsiveHomePage({
     super.key,
@@ -19,17 +20,17 @@ class ResponsiveHomePage extends StatelessWidget {
     required this.userRole,
     required this.inviteCode,
     required this.houseOwnerId,
+    required this.userId,
   });
 
   @override
   Widget build(BuildContext context) {
-    // Define um ponto de quebra. Se a tela for menor que 700px, é mobile.
     const breakpoint = 700;
 
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < breakpoint) {
-          // MOSTRA A TELA DE MENU PARA CELULAR
+          // Passa os parâmetros para a versão mobile
           return MobileHomePage(
             houseId: houseId,
             houseName: houseName,
@@ -38,13 +39,13 @@ class ResponsiveHomePage extends StatelessWidget {
             houseOwnerId: houseOwnerId,
           );
         } else {
-          // MOSTRA O NOVO DASHBOARD PARA DESKTOP
+          // Passa os parâmetros para a versão desktop
           return DesktopDashboardPage(
             houseId: houseId,
             houseName: houseName,
             userRole: userRole,
-            // Pega o ID do usuário logado para passar para o dashboard
-            userId: supabase.auth.currentUser!.id,
+            userId: userId,
+            houseOwnerId: houseOwnerId,
           );
         }
       },

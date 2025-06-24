@@ -1,16 +1,22 @@
-// ARQUIVO ATUALIZADO: lib/pages/desktop_dashboard_page.dart
+// ARQUIVO SIMPLIFICADO: lib/pages/desktop_dashboard_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
-import 'package:gestao_familiar_app/widgets/dashboard_cards/family_members_panel.dart';
-import 'package:gestao_familiar_app/widgets/dashboard_cards/my_tasks_card.dart';
-import 'package:gestao_familiar_app/widgets/dashboard_cards/upcoming_events_card.dart';
+import 'package:gestao_familiar_app/pages/calendar_page.dart';
+import 'package:gestao_familiar_app/pages/desktop_summary_page.dart';
+import 'package:gestao_familiar_app/pages/family_page.dart';
+import 'package:gestao_familiar_app/pages/finances_page.dart';
+import 'package:gestao_familiar_app/pages/medication_page.dart';
+import 'package:gestao_familiar_app/pages/profile_page.dart';
+import 'package:gestao_familiar_app/pages/shopping_list_page.dart';
+import 'package:gestao_familiar_app/pages/tasks_page.dart';
 
 class DesktopDashboardPage extends StatefulWidget {
   final String houseId;
   final String houseName;
   final String userRole;
   final String userId;
+  final String houseOwnerId;
 
   const DesktopDashboardPage({
     super.key,
@@ -18,6 +24,7 @@ class DesktopDashboardPage extends StatefulWidget {
     required this.houseName,
     required this.userRole,
     required this.userId,
+    required this.houseOwnerId,
   });
 
   @override
@@ -26,29 +33,41 @@ class DesktopDashboardPage extends StatefulWidget {
 
 class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
   int _selectedIndex = 0;
-  List<Map<String, dynamic>> _houseMembers = [];
+  late final List<Widget> _pages;
+  late final List<String> _pageTitles;
 
   @override
   void initState() {
     super.initState();
-    _fetchHouseMembers();
-  }
 
-  Future<void> _fetchHouseMembers() async {
-    try {
-      final response = await supabase.rpc(
-        'get_house_members',
-        params: {'p_house_id': widget.houseId},
-      );
-      if (mounted)
-        setState(
-          () => _houseMembers = List<Map<String, dynamic>>.from(response),
-        );
-    } catch (e) {}
+    _pages = [
+      DesktopSummaryPage(houseId: widget.houseId, userId: widget.userId),
+      TasksPage(houseId: widget.houseId),
+      ShoppingListPage(houseId: widget.houseId),
+      CalendarPage(houseId: widget.houseId),
+      const FinancesPage(),
+      const MedicationPage(),
+      FamilyPage(
+        houseId: widget.houseId,
+        currentUserRole: widget.userRole,
+        houseOwnerId: widget.houseOwnerId,
+      ),
+    ];
+
+    _pageTitles = [
+      widget.houseName,
+      'Quadros de Tarefas',
+      'Listas de Compras',
+      'Calendário',
+      'Finanças',
+      'Medicamentos',
+      'Gerenciar Família',
+    ];
   }
 
   @override
   Widget build(BuildContext context) {
+    // Usaremos os metadados aqui para o "Olá" na AppBar, que já está funcionando.
     final userFirstName =
         supabase.auth.currentUser?.userMetadata?['full_name']
             ?.split(' ')
@@ -65,10 +84,7 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
             labelType: NavigationRailLabelType.all,
             leading: Padding(
               padding: const EdgeInsets.symmetric(vertical: 20.0),
-              child: Image.asset(
-                'assets/icons/logo.png', // Requer que o logo esteja nos assets
-                width: 40,
-              ),
+              child: Image.asset('assets/icons/logo.png', width: 40),
             ),
             destinations: const [
               NavigationRailDestination(
@@ -91,51 +107,63 @@ class _DesktopDashboardPageState extends State<DesktopDashboardPage> {
                 selectedIcon: Icon(Icons.calendar_month),
                 label: Text('Calendário'),
               ),
+              NavigationRailDestination(
+                icon: Icon(Icons.account_balance_wallet_outlined),
+                selectedIcon: Icon(Icons.account_balance_wallet),
+                label: Text('Finanças'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.medication_outlined),
+                selectedIcon: Icon(Icons.medication),
+                label: Text('Medicamentos'),
+              ),
+              NavigationRailDestination(
+                icon: Icon(Icons.admin_panel_settings_outlined),
+                selectedIcon: Icon(Icons.admin_panel_settings),
+                label: Text('Gestão'),
+              ),
             ],
           ),
           const VerticalDivider(thickness: 1, width: 1),
-
           Expanded(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.all(24.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    'Boa tarde, $userFirstName!',
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
+            child: Column(
+              children: [
+                AppBar(
+                  title: Text(_pageTitles[_selectedIndex]),
+                  backgroundColor: Colors.white,
+                  elevation: 1,
+                  automaticallyImplyLeading: false,
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.notifications_none_outlined),
+                      onPressed: () {},
                     ),
-                  ),
-                  const Text(
-                    'Aqui está um resumo da sua casa hoje.',
-                    style: TextStyle(color: lightTextColor),
-                  ),
-                  const SizedBox(height: 24),
-                  Wrap(
-                    spacing: 16.0,
-                    runSpacing: 16.0,
-                    children: [
-                      // Substituímos os placeholders pelos nossos novos widgets inteligentes
-                      UpcomingEventsCard(houseId: widget.houseId),
-                      MyTasksCard(userId: widget.userId),
-                      // Card de Finanças (ainda como placeholder)
-                      const Card(
-                        child: Padding(
-                          padding: EdgeInsets.all(16.0),
-                          child: Text('Resumo Financeiro (em breve)'),
-                        ),
+                    const SizedBox(width: 8),
+                    Center(
+                      child: Text(
+                        'Olá, $userFirstName',
+                        style: const TextStyle(fontWeight: FontWeight.w500),
                       ),
-                    ],
-                  ),
-                ],
-              ),
+                    ),
+                    const SizedBox(width: 8),
+                    IconButton(
+                      icon: const Icon(Icons.person_outline),
+                      tooltip: 'Meu Perfil',
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const ProfilePage(),
+                          ),
+                        );
+                      },
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+                Expanded(child: _pages[_selectedIndex]),
+              ],
             ),
           ),
-
-          // Painel de Membros agora usa o novo widget com dados reais
-          FamilyMembersPanel(members: _houseMembers),
         ],
       ),
     );

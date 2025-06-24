@@ -1,9 +1,10 @@
+// CÓDIGO FINAL PARA: lib/pages/home_page.dart
+
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/no_house_page.dart';
 import 'package:gestao_familiar_app/api/firebase_api.dart';
-import 'package:gestao_familiar_app/pages/responsive_home_page.dart'; 
-// A linha do 'house_dashboard_page.dart' foi removida.
+import 'package:gestao_familiar_app/pages/responsive_home_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -19,12 +20,14 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _getHouseMembershipFuture = _getHouseMembership();
+    // A inicialização das notificações continua aqui
     FirebaseApi().initNotifications();
   }
 
   Future<Map<String, dynamic>?> _getHouseMembership() async {
     final userId = supabase.auth.currentUser!.id;
     try {
+      // Garante que todos os campos necessários são buscados
       final response = await supabase
           .from('house_members')
           .select('role, houses(id, name, invite_code, owner_id)')
@@ -50,10 +53,9 @@ class _HomePageState extends State<HomePage> {
 
         if (snapshot.hasData && snapshot.data != null) {
           final membershipData = snapshot.data!;
-          // Verifica se 'houses' não é nulo antes de acessar
           final houseData = membershipData['houses'];
+
           if (houseData == null) {
-            // Se por algum motivo a casa não for encontrada, trata como se não tivesse casa
             return NoHousePage(
               onHouseCreatedOrJoined: () {
                 setState(() {
@@ -63,13 +65,14 @@ class _HomePageState extends State<HomePage> {
             );
           }
 
+          // A chamada para a página responsiva, passando todos os parâmetros corretamente
           return ResponsiveHomePage(
             houseId: houseData['id'],
             houseName: houseData['name'],
             userRole: membershipData['role'],
             inviteCode: houseData['invite_code'],
-            houseOwnerId:
-                houseData['owner_id'], // Agora será recebido corretamente
+            houseOwnerId: houseData['owner_id'],
+            userId: supabase.auth.currentUser!.id,
           );
         }
 
