@@ -1,4 +1,4 @@
-// ARQUIVO COMPLETO E FINAL: lib/pages/mobile_home_page.dart
+// CÓDIGO FINAL E CORRIGIDO: lib/pages/mobile_home_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
@@ -12,15 +12,14 @@ import 'package:gestao_familiar_app/pages/splash_page.dart';
 import 'package:gestao_familiar_app/pages/tasks_page.dart';
 import 'package:gestao_familiar_app/widgets/menu_button_widget.dart';
 
-class MobileHomePage extends StatelessWidget {
-  // --- AS DECLARAÇÕES QUE FALTAVAM ESTÃO AQUI ---
+class MobileHomePage extends StatefulWidget {
   final String houseId;
   final String houseName;
   final String userRole;
   final String inviteCode;
   final String houseOwnerId;
+  final String userId;
 
-  // O construtor agora corresponde às variáveis declaradas
   const MobileHomePage({
     super.key,
     required this.houseId,
@@ -28,13 +27,46 @@ class MobileHomePage extends StatelessWidget {
     required this.userRole,
     required this.inviteCode,
     required this.houseOwnerId,
+    required this.userId,
   });
+
+  @override
+  State<MobileHomePage> createState() => _MobileHomePageState();
+}
+
+class _MobileHomePageState extends State<MobileHomePage> {
+  String _userFirstName = 'Usuário';
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserName();
+  }
+
+  Future<void> _fetchUserName() async {
+    try {
+      final response = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', widget.userId)
+          .single();
+
+      if (mounted && response['full_name'] != null) {
+        setState(() {
+          _userFirstName = (response['full_name'] as String).split(' ').first;
+        });
+      }
+    } catch (e) {
+      debugPrint("Erro ao buscar nome para o mobile: $e");
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text(houseName),
+        // --- A CORREÇÃO ESTÁ AQUI ---
+        title: Text(widget.houseName),
         leading: IconButton(
           icon: const Icon(Icons.person_outline),
           tooltip: 'Meu Perfil',
@@ -45,7 +77,7 @@ class MobileHomePage extends StatelessWidget {
           },
         ),
         actions: [
-          if (userRole == 'administrador')
+          if (widget.userRole == 'administrador')
             IconButton(
               icon: const Icon(Icons.person_add_alt_1_outlined),
               tooltip: 'Convidar Membros',
@@ -71,13 +103,22 @@ class MobileHomePage extends StatelessWidget {
       body: ListView(
         padding: const EdgeInsets.all(16.0),
         children: [
+          Padding(
+            padding: const EdgeInsets.only(bottom: 24.0, left: 4.0),
+            child: Text(
+              'Olá, $_userFirstName!',
+              style: const TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
+            ),
+          ),
           MenuButton(
             icon: Icons.check_circle_outline,
             label: 'Tarefas',
             color: Colors.orange.shade600,
             onTap: () {
               Navigator.of(context).push(
-                MaterialPageRoute(builder: (_) => TasksPage(houseId: houseId)),
+                MaterialPageRoute(
+                  builder: (_) => TasksPage(houseId: widget.houseId),
+                ),
               );
             },
           ),
@@ -89,7 +130,7 @@ class MobileHomePage extends StatelessWidget {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => ShoppingListPage(houseId: houseId),
+                  builder: (_) => ShoppingListPage(houseId: widget.houseId),
                 ),
               );
             },
@@ -102,7 +143,7 @@ class MobileHomePage extends StatelessWidget {
             onTap: () {
               Navigator.of(context).push(
                 MaterialPageRoute(
-                  builder: (_) => CalendarPage(houseId: houseId),
+                  builder: (_) => CalendarPage(houseId: widget.houseId),
                 ),
               );
             },
@@ -138,9 +179,9 @@ class MobileHomePage extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (_) => FamilyPage(
-                    houseId: houseId,
-                    currentUserRole: userRole,
-                    houseOwnerId: houseOwnerId,
+                    houseId: widget.houseId,
+                    currentUserRole: widget.userRole,
+                    houseOwnerId: widget.houseOwnerId,
                   ),
                 ),
               );
