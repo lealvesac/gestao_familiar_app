@@ -1,7 +1,6 @@
-// ARQUIVO FINAL E CORRIGIDO: lib/main.dart
+// CÓDIGO FINAL E SIMPLIFICADO: lib/main.dart
 
 import 'package:flutter/material.dart';
-import 'package:gestao_familiar_app/pages/reset_password_page.dart';
 import 'package:gestao_familiar_app/pages/splash_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -9,42 +8,25 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// --- PALETA DE CORES (continua a mesma) ---
-const primaryColor = Color(0xFF2DD8C8); // Ciano do modelo
+// Paleta de Cores
+const primaryColor = Color(0xFF2DD8C8);
 const darkTextColor = Color(0xFF2F363F);
 const lightTextColor = Color(0xFF6A737D);
 const backgroundColor = Color(0xFFF5F7FA);
 const cardColor = Colors.white;
-// Cor da sombra com 10% de opacidade (1A em hexadecimal) do primaryColor
 const shadowColor = Color(0x1A2DD8C8);
 
-// 1. CRIAMOS UMA CHAVE GLOBAL PARA O NOSSO NAVEGADOR
-final navigatorKey = GlobalKey<NavigatorState>();
-
+// A NavigatorKey e o listener foram removidos daqui.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
 
   await Supabase.initialize(
-    url: 'https://ddiztapmnmwdaisqgsvw.supabase.co', // Cole sua URL aqui
+    url: 'https://ddiztapmnmwdaisqgsvw.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaXp0YXBtbm13ZGFpc3Fnc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NjczOTYsImV4cCI6MjA2NTE0MzM5Nn0.gHoSY7h0c-Olct3p3bswHOIzM8ri1weELDdrQxF3yC8',
   );
-
-  // 2. O LISTENER DE AUTENTICAÇÃO AGORA VIVE AQUI
-  // Ele fica ativo durante toda a vida do app.
-  supabase.auth.onAuthStateChange.listen((data) {
-    final event = data.event;
-    // Se o evento for de recuperação de senha...
-    if (event == AuthChangeEvent.passwordRecovery) {
-      // ...usamos nossa chave global para navegar para a tela de Reset,
-      // não importa em qual tela o app esteja.
-      navigatorKey.currentState?.pushReplacement(
-        MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
-      );
-    }
-  });
 
   await initializeDateFormatting('pt_BR', null);
 
@@ -59,28 +41,20 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // 3. ATRIBUÍMOS A CHAVE GLOBAL AO MATERIALAPP
-      navigatorKey: navigatorKey,
+      // A navigatorKey foi removida daqui.
       title: 'Familize',
       theme: ThemeData(
         useMaterial3: true,
         scaffoldBackgroundColor: backgroundColor,
-
-        // Define a paleta de cores principal
         colorScheme: ColorScheme.fromSeed(
           seedColor: primaryColor,
           primary: primaryColor,
-          // A cor secundária é usada por padrão em componentes como o FAB
           secondary: primaryColor,
           surface: cardColor,
         ),
-
-        // Define a fonte padrão para todo o app
         textTheme: GoogleFonts.poppinsTextTheme(
           Theme.of(context).textTheme,
         ).apply(bodyColor: darkTextColor, displayColor: darkTextColor),
-
-        // Estilo da AppBar
         appBarTheme: AppBarTheme(
           backgroundColor: backgroundColor,
           elevation: 0.5,
@@ -160,6 +134,7 @@ class MyApp extends StatelessWidget {
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
       ),
+      // A tela inicial continua sendo a SplashPage, mas agora ela é muito mais inteligente.
       home: const SplashPage(),
     );
   }
