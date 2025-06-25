@@ -1,0 +1,17 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Familize (Chrome - Porta 3000)",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--web-port", "3000"]
+    },
+    {
+      "name": "Familize (Edge - Porta 3000)",
+      "request": "launch",
+      "type": "dart",
+      "args": ["--web-port", "3000", "-d", "edge"]
+    }
+  ]
+}

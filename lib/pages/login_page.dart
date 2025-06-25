@@ -1,4 +1,4 @@
-// ARQUIVO ATUALIZADO E RESPONSIVO: lib/pages/login_page.dart
+// ARQUIVO ATUALIZADO: lib/pages/login_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
@@ -8,7 +8,6 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
-
   @override
   State<LoginPage> createState() => _LoginPageState();
 }
@@ -45,6 +44,78 @@ class _LoginPageState extends State<LoginPage> {
     }
   }
 
+  // --- NOVA FUNÇÃO PARA O DIÁLOGO DE ESQUECEU A SENHA ---
+  Future<void> _showForgotPasswordDialog() async {
+    final emailController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Recuperar Senha'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Text(
+                  'Digite seu e-mail para receber o link de recuperação.',
+                ),
+                const SizedBox(height: 16),
+                TextFormField(
+                  controller: emailController,
+                  decoration: const InputDecoration(labelText: 'E-mail'),
+                  keyboardType: TextInputType.emailAddress,
+                  validator: (value) =>
+                      (value?.isEmpty ?? true) ? 'Campo obrigatório' : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                if (formKey.currentState!.validate()) {
+                  try {
+                    await supabase.auth.resetPasswordForEmail(
+                      emailController.text.trim(),
+                    );
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text(
+                            'Link de recuperação enviado! Verifique seu e-mail.',
+                          ),
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      Navigator.of(context).pop();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Erro: ${e.toString()}'),
+                          backgroundColor: Colors.red,
+                        ),
+                      );
+                    }
+                  }
+                }
+              },
+              child: const Text('Enviar Link'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   void dispose() {
     _emailController.dispose();
@@ -56,19 +127,14 @@ class _LoginPageState extends State<LoginPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: Center(
-        // Adicionamos um Center para garantir a centralização vertical e horizontal
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
-          // --- A MÁGICA DA RESPONSIVIDADE ACONTECE AQUI ---
           child: ConstrainedBox(
-            constraints: const BoxConstraints(
-              maxWidth: 500,
-            ), // Limita a largura máxima
+            constraints: const BoxConstraints(maxWidth: 500),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // --- CABEÇALHO ---
                 const Text(
                   'Familize',
                   textAlign: TextAlign.center,
@@ -78,15 +144,6 @@ class _LoginPageState extends State<LoginPage> {
                     fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 8),
-                const Text(
-                  'Organize sua família e casa em um só lugar',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(color: lightTextColor, fontSize: 16),
-                ),
-                const SizedBox(height: 48),
-
-                // --- CARD DE LOGIN ---
                 Card(
                   child: Padding(
                     padding: const EdgeInsets.all(24.0),
@@ -132,6 +189,22 @@ class _LoginPageState extends State<LoginPage> {
                             onFieldSubmitted: (_) => _signIn(),
                           ),
                           const SizedBox(height: 24),
+
+                          // --- NOVO BOTÃO/LINK "ESQUECEU A SENHA?" ---
+                          Padding(
+                            padding: const EdgeInsets.only(
+                              top: 8.0,
+                              bottom: 16.0,
+                            ),
+                            child: Align(
+                              alignment: Alignment.centerRight,
+                              child: TextButton(
+                                onPressed: _showForgotPasswordDialog,
+                                child: const Text('Esqueceu a senha?'),
+                              ),
+                            ),
+                          ),
+
                           if (_isLoading)
                             const Center(child: CircularProgressIndicator())
                           else

@@ -1,6 +1,7 @@
-// ARQUIVO COMPLETO E FINALMENTE CORRIGIDO: lib/main.dart
+// ARQUIVO FINAL E CORRIGIDO: lib/main.dart
 
 import 'package:flutter/material.dart';
+import 'package:gestao_familiar_app/pages/reset_password_page.dart';
 import 'package:gestao_familiar_app/pages/splash_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -8,7 +9,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// --- PALETA DE CORES FINAL ---
+// --- PALETA DE CORES (continua a mesma) ---
 const primaryColor = Color(0xFF2DD8C8); // Ciano do modelo
 const darkTextColor = Color(0xFF2F363F);
 const lightTextColor = Color(0xFF6A737D);
@@ -17,15 +18,34 @@ const cardColor = Colors.white;
 // Cor da sombra com 10% de opacidade (1A em hexadecimal) do primaryColor
 const shadowColor = Color(0x1A2DD8C8);
 
+// 1. CRIAMOS UMA CHAVE GLOBAL PARA O NOSSO NAVEGADOR
+final navigatorKey = GlobalKey<NavigatorState>();
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+
   await Supabase.initialize(
     url: 'https://ddiztapmnmwdaisqgsvw.supabase.co', // Cole sua URL aqui
     anonKey:
-        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaXp0YXBtbm13ZGFpc3Fnc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NjczOTYsImV4cCI6MjA2NTE0MzM5Nn0.gHoSY7h0c-Olct3p3bswHOIzM8ri1weELDdrQxF3yC8', // Cole sua Anon Key aqui
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaXp0YXBtbm13ZGFpc3Fnc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NjczOTYsImV4cCI6MjA2NTE0MzM5Nn0.gHoSY7h0c-Olct3p3bswHOIzM8ri1weELDdrQxF3yC8',
   );
-  // Usamos um único await para o initializeDateFormatting
+
+  // 2. O LISTENER DE AUTENTICAÇÃO AGORA VIVE AQUI
+  // Ele fica ativo durante toda a vida do app.
+  supabase.auth.onAuthStateChange.listen((data) {
+    final event = data.event;
+    // Se o evento for de recuperação de senha...
+    if (event == AuthChangeEvent.passwordRecovery) {
+      // ...usamos nossa chave global para navegar para a tela de Reset,
+      // não importa em qual tela o app esteja.
+      navigatorKey.currentState?.pushReplacement(
+        MaterialPageRoute(builder: (_) => const ResetPasswordPage()),
+      );
+    }
+  });
+
   await initializeDateFormatting('pt_BR', null);
 
   runApp(const MyApp());
@@ -39,6 +59,8 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      // 3. ATRIBUÍMOS A CHAVE GLOBAL AO MATERIALAPP
+      navigatorKey: navigatorKey,
       title: 'Familize',
       theme: ThemeData(
         useMaterial3: true,
