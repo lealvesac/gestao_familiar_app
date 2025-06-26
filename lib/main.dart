@@ -1,4 +1,4 @@
-// CÓDIGO FINAL E SIMPLIFICADO: lib/main.dart
+// ARQUIVO FINAL E SIMPLIFICADO: lib/main.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/pages/splash_page.dart';
@@ -14,9 +14,8 @@ const darkTextColor = Color(0xFF2F363F);
 const lightTextColor = Color(0xFF6A737D);
 const backgroundColor = Color(0xFFF5F7FA);
 const cardColor = Colors.white;
-const shadowColor = Color(0x1A2DD8C8);
 
-// A NavigatorKey e o listener foram removidos daqui.
+// A NavigatorKey e o listener foram REMOVIDOS daqui.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -41,7 +40,6 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      // A navigatorKey foi removida daqui.
       title: 'Familize',
       theme: ThemeData(
         useMaterial3: true,
@@ -58,7 +56,7 @@ class MyApp extends StatelessWidget {
         appBarTheme: AppBarTheme(
           backgroundColor: backgroundColor,
           elevation: 0.5,
-          centerTitle: true, // Centraliza o título para um visual mais moderno
+          centerTitle: true,
           titleTextStyle: GoogleFonts.poppins(
             color: darkTextColor,
             fontSize: 20,
@@ -66,24 +64,18 @@ class MyApp extends StatelessWidget {
           ),
           iconTheme: const IconThemeData(color: darkTextColor),
         ),
-
-        // Estilo dos Cards
         cardTheme: CardThemeData(
           color: cardColor,
           elevation: 4,
-          shadowColor: Colors.black.withOpacity(0.08), // Sombra mais suave
+          shadowColor: Colors.black.withOpacity(0.08),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(12.0),
           ),
         ),
-
-        // Estilo dos Botões Flutuantes (FAB)
         floatingActionButtonTheme: const FloatingActionButtonThemeData(
           backgroundColor: primaryColor,
           foregroundColor: Colors.white,
         ),
-
-        // Estilo dos Botões Principais
         elevatedButtonTheme: ElevatedButtonThemeData(
           style: ElevatedButton.styleFrom(
             backgroundColor: primaryColor,
@@ -98,26 +90,22 @@ class MyApp extends StatelessWidget {
             ),
           ),
         ),
-
-        // Estilo da Barra de Navegação Inferior
         bottomNavigationBarTheme: const BottomNavigationBarThemeData(
           backgroundColor: cardColor,
           selectedItemColor: primaryColor,
           unselectedItemColor: Colors.grey,
           elevation: 4,
         ),
-
-        // Estilo para os campos de formulário
         inputDecorationTheme: InputDecorationTheme(
           filled: true,
-          fillColor: Colors.white, // Fundo branco para os campos
+          fillColor: Colors.white,
           contentPadding: const EdgeInsets.symmetric(
             horizontal: 16,
             vertical: 14,
           ),
           border: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
-            borderSide: BorderSide(color: Colors.grey.shade300), // Borda sutil
+            borderSide: BorderSide(color: Colors.grey.shade300),
           ),
           enabledBorder: OutlineInputBorder(
             borderRadius: BorderRadius.circular(12.0),
@@ -134,7 +122,7 @@ class MyApp extends StatelessWidget {
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
       ),
-      // A tela inicial continua sendo a SplashPage, mas agora ela é muito mais inteligente.
+      // A tela inicial agora é a SplashPage, que será nosso portão de entrada.
       home: const SplashPage(),
     );
   }

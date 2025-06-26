@@ -1,4 +1,4 @@
-// CÓDIGO FINAL E DEFINITIVO: lib/pages/splash_page.dart
+// ARQUIVO FINAL E DEFINITIVO: lib/pages/splash_page.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
@@ -12,8 +12,8 @@ class SplashPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // O StreamBuilder é a solução reativa que escuta o estado de autenticação
-    // e constrói a tela correta em resposta, sem "condição de corrida".
+    // StreamBuilder é a solução reativa que escuta o estado de autenticação
+    // e constrói a tela correta em resposta, sem condição de corrida.
     return StreamBuilder<AuthState>(
       stream: supabase.auth.onAuthStateChange,
       builder: (context, snapshot) {
@@ -24,22 +24,21 @@ class SplashPage extends StatelessWidget {
           );
         }
 
-        // Quando o primeiro evento chega, analisamos os dados.
-        final data = snapshot.data!;
-        final session = data.session;
-        final event = data.event;
+        final authState = snapshot.data!;
+        final session = authState.session;
+        final event = authState.event;
 
-        // 1. Damos prioridade MÁXIMA ao evento de recuperação de senha.
+        // Damos prioridade MÁXIMA ao evento de recuperação de senha.
         if (event == AuthChangeEvent.passwordRecovery) {
           return const ResetPasswordPage();
         }
 
-        // 2. Se não for recuperação, mas existir uma sessão, vai para a Home.
+        // Se não for recuperação, mas existir uma sessão, vai para a Home.
         if (session != null) {
           return const HomePage();
         }
 
-        // 3. Se não houver sessão, vai para o Login.
+        // Se não houver sessão, vai para o Login.
         return const LoginPage();
       },
     );
