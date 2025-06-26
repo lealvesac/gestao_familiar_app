@@ -1,4 +1,4 @@
-// ARQUIVO FINAL E SIMPLIFICADO: lib/main.dart
+// CÓDIGO FINAL E CORRIGIDO: lib/main.dart
 
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/pages/splash_page.dart';
@@ -8,14 +8,14 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// Paleta de Cores
+// --- PALETA DE CORES ---
 const primaryColor = Color(0xFF2DD8C8);
 const darkTextColor = Color(0xFF2F363F);
 const lightTextColor = Color(0xFF6A737D);
 const backgroundColor = Color(0xFFF5F7FA);
 const cardColor = Colors.white;
 
-// A NavigatorKey e o listener foram REMOVIDOS daqui.
+// A NavigatorKey e o listener foram removidos daqui.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -122,7 +122,7 @@ class MyApp extends StatelessWidget {
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
       ),
-      // A tela inicial agora é a SplashPage, que será nosso portão de entrada.
+      // A tela inicial agora é a SplashPage, que se tornou nosso "portão de entrada"
       home: const SplashPage(),
     );
   }
