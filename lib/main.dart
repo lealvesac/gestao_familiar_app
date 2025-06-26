@@ -1,5 +1,4 @@
-// CÓDIGO FINAL E CORRIGIDO: lib/main.dart
-
+// CÓDIGO FINAL PARA: lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/pages/splash_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -8,27 +7,21 @@ import 'package:firebase_core/firebase_core.dart';
 import 'firebase_options.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-// --- PALETA DE CORES ---
 const primaryColor = Color(0xFF2DD8C8);
 const darkTextColor = Color(0xFF2F363F);
 const lightTextColor = Color(0xFF6A737D);
 const backgroundColor = Color(0xFFF5F7FA);
 const cardColor = Colors.white;
 
-// A NavigatorKey e o listener foram removidos daqui.
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-
   await Supabase.initialize(
     url: 'https://ddiztapmnmwdaisqgsvw.supabase.co',
     anonKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaXp0YXBtbm13ZGFpc3Fnc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NjczOTYsImV4cCI6MjA2NTE0MzM5Nn0.gHoSY7h0c-Olct3p3bswHOIzM8ri1weELDdrQxF3yC8',
   );
-
   await initializeDateFormatting('pt_BR', null);
-
   runApp(const MyApp());
 }
 
@@ -122,7 +115,6 @@ class MyApp extends StatelessWidget {
           floatingLabelBehavior: FloatingLabelBehavior.auto,
         ),
       ),
-      // A tela inicial agora é a SplashPage, que se tornou nosso "portão de entrada"
       home: const SplashPage(),
     );
   }

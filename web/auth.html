@@ -5,20 +5,21 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-  <p>Autenticando, por favor aguarde...</p>
+  <p>Processando seu login... Você será redirecionado em breve.</p>
   <script>
-    // IMPORTANTE: Use as mesmas credenciais do seu main.dart
+    // IMPORTANTE: Suas credenciais já estão corretas aqui
     const SUPABASE_URL = 'https://ddiztapmnmwdaisqgsvw.supabase.co';
     const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRkaXp0YXBtbm13ZGFpc3Fnc3Z3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk1NjczOTYsImV4cCI6MjA2NTE0MzM5Nn0.gHoSY7h0c-Olct3p3bswHOIzM8ri1weELDdrQxF3yC8';
     
-    const supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    // Inicializa o cliente Supabase.
+    const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Esta função é a chave. Ela é chamada assim que a página carrega.
-    // O cliente Supabase detecta o token na URL, cria a sessão e a salva no localStorage.
-    // Depois, ele nos notifica sobre a mudança de estado.
-    supabase.auth.onAuthStateChange((event, session) => {
-      // Assim que a sessão especial de recuperação for estabelecida...
-      if (event === 'PASSWORD_RECOVERY') {
+    // O cliente Supabase detecta o token na URL, estabelece a sessão e a salva no localStorage do navegador.
+    supabaseClient.auth.onAuthStateChange((event, session) => {
+      // Assim que a sessão especial de recuperação for estabelecida
+      // ou qualquer outra sessão for confirmada...
+      if (session) {
         // ...redirecionamos para a raiz do nosso app Flutter.
         window.location.href = '/'; 
       }

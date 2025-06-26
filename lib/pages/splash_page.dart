@@ -1,4 +1,4 @@
-// CÓDIGO FINAL PARA: lib/pages/splash_page.dart
+// CÓDIGO FINAL E DEFINITIVO: lib/pages/splash_page.dart
 import 'package:flutter/material.dart';
 import 'package:gestao_familiar_app/main.dart';
 import 'package:gestao_familiar_app/pages/home_page.dart';
@@ -15,8 +15,10 @@ class SplashPage extends StatelessWidget {
       stream: supabase.auth.onAuthStateChange,
       builder: (context, snapshot) {
         if (!snapshot.hasData) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+          return Scaffold(
+            body: Center(
+              child: Image.asset('assets/icons/logo.png', width: 120),
+            ),
           );
         }
 
