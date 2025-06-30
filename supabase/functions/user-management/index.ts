@@ -48,17 +48,20 @@ Deno.serve(async (req) => {
     }
 
     // Um admin não pode modificar o dono da casa (super admin)
+    // ATENÇÃO: O erro estava aqui. 'houses' é um objeto. Acesso correto é callerMembership.houses.owner_id
     if (targetUserId === callerMembership.houses.owner_id) {
       throw new Error("Você não pode modificar o dono da casa.");
     }
 
     // --- EXECUÇÃO DAS AÇÕES ---
     if (action === "reset-password") {
+      const { data: targetUser, error: getUserError } =
+        await supabaseAdmin.auth.admin.getUserById(targetUserId);
+      if (getUserError) throw getUserError;
+
       const { data, error } = await supabaseAdmin.auth.admin.generateLink({
         type: "recovery",
-        email: (
-          await supabaseAdmin.auth.admin.getUserById(targetUserId)
-        ).data.user.email,
+        email: targetUser.user.email,
       });
       if (error) throw error;
       // A API do Supabase envia o e-mail automaticamente
@@ -74,8 +77,7 @@ Deno.serve(async (req) => {
     }
 
     // if (action === 'deactivate-user') {
-    //   // TODO: Implementar a lógica de desativação, ex:
-    //   // await supabaseAdmin.from('profiles').update({ is_active: false }).eq('id', targetUserId)
+    //   // TODO: Implementar a lógica de desativação
     // }
 
     return new Response(JSON.stringify({ message: "Ação não reconhecida." }), {
